@@ -43,8 +43,9 @@ public class PlayerController : MonoBehaviour
     public GameObject muzzleFlash;
     public Animator anim;
     public AudioSource rifleShot;
-    private static readonly int AimReloading = Animator.StringToHash("aimReloading");
+    private static readonly int Reloading = Animator.StringToHash("reloading");
     private static readonly int IsMoving = Animator.StringToHash("isMoving");
+    private static readonly int IsSprinting = Animator.StringToHash("isSprinting");
     private static readonly int Jumping = Animator.StringToHash("jumping");
     private static readonly int IsAiming = Animator.StringToHash("isAiming");
     private static readonly int IsAidleShooting = Animator.StringToHash("isAidleShooting");
@@ -100,7 +101,18 @@ public class PlayerController : MonoBehaviour
         var z = Input.GetAxisRaw("Vertical");
         var transform1 = transform;
         var move = transform1.right * x + transform1.forward * z;
+
+        if (Input.GetKey(KeyCode.W) && state == State.Normal)
+        {
+            anim.SetBool(IsMoving, true);
+        }
+        else if (Input.GetKeyUp(KeyCode.W) && state == State.Normal)
+        {
+            anim.SetBool(IsMoving, false);
+        }
         
+        
+
         //Dashing
         if (_isDashing)
         {
@@ -120,22 +132,23 @@ public class PlayerController : MonoBehaviour
             _isDashing = true;
         }
 
-        //Walking & Sprinting
+        //Sprinting
         if (Input.GetKey(KeyCode.LeftShift) && state == State.Normal)
         {
             controller.Move(move * (sprint * Time.deltaTime));
             _isSprinting = true;
-            if (!anim.GetBool(AimReloading))
-            {
-                anim.SetBool(IsMoving, true);
-            }
+
+         
+            
+                anim.SetBool(IsSprinting, true);
+        
 
         }
         else if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             
             _isSprinting = false;
-            anim.SetBool(IsMoving, false);
+            anim.SetBool(IsSprinting, false);
         }
         else
         {
@@ -190,19 +203,18 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        //Start Reload
+        //Start Reload\\
         if (Input.GetKeyDown(KeyCode.R))
         {
-            anim.SetBool(AimReloading, true);
-            anim.SetBool(IsMoving, false);
+            anim.SetTrigger(Reloading);
             StartCoroutine(Reloaded(2));
         }
         
         //Switch Gun
-        if (Input.GetAxis("Mouse ScrollWheel") != 0)
-        {
-            SwitchGun();
-        }
+        // if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        // {
+        //     SwitchGun();
+        // }
 
         //Aiming
         if (Input.GetMouseButtonDown(1))
@@ -230,7 +242,7 @@ public class PlayerController : MonoBehaviour
     private void FireShot(bool rb, Rigidbody rigid=default,Vector3 rbp=default)
     {
 
-        if (activeGun.currentAmo > 0 && !anim.GetBool(AimReloading))
+        if (activeGun.currentAmo > 0)
         {
             if(rb){                    
                 _grabbedObj = null;
@@ -267,11 +279,8 @@ public class PlayerController : MonoBehaviour
     IEnumerator Reloaded(float time)
     {
         yield return new WaitForSeconds(time);
-        
         activeGun.currentAmo += 5;
         UIController.instance.ammoText.text = activeGun.currentAmo + " Bullets";
-        anim.SetBool(AimReloading, false);
-        
     }
     
     IEnumerator ShotFinished(float time)
