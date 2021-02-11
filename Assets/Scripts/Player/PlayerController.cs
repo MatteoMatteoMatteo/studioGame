@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
     public Animator anim;
     public AudioSource rifleShot;
     private static readonly int Reloading = Animator.StringToHash("reloading");
+    private static readonly int Dashing = Animator.StringToHash("dashing");
     private static readonly int IsMoving = Animator.StringToHash("isMoving");
     private static readonly int IsSprinting = Animator.StringToHash("isSprinting");
     private static readonly int Jumping = Animator.StringToHash("jumping");
@@ -117,7 +118,6 @@ public class PlayerController : MonoBehaviour
         if (_isDashing)
         {
             _dashingPower -= _dashingPower * 1.5f * Time.deltaTime;
-            dashParticles.SetActive(false);
             if (_dashingPower < 1f)
             {
                 _isDashing = false;
@@ -125,11 +125,12 @@ public class PlayerController : MonoBehaviour
                 dashParticles.SetActive(false);
             }
         }
-        if (Input.GetKeyDown(KeyCode.Tab) && state == State.Normal)
+        if (Input.GetKeyDown(KeyCode.Tab) && state == State.Normal && !_isDashing)
         {
             _dashingPower = dashingPower;
             dashParticles.SetActive(true);
             _isDashing = true;
+            anim.SetTrigger(Dashing);
         }
 
         //Sprinting
@@ -139,7 +140,7 @@ public class PlayerController : MonoBehaviour
             _isSprinting = true;
 
          
-            
+            speedParticles.SetActive(true);
                 anim.SetBool(IsSprinting, true);
         
 
@@ -149,6 +150,7 @@ public class PlayerController : MonoBehaviour
             
             _isSprinting = false;
             anim.SetBool(IsSprinting, false);
+            speedParticles.SetActive(false);
         }
         else
         {
@@ -264,6 +266,7 @@ public class PlayerController : MonoBehaviour
                 anim.SetBool(IsAidleShooting, true);  
             }
 
+            activeGun.ShootBullet();
             StartCoroutine(ShotFinished(0.2f));  
 
             // muzzleFlash.SetActive(true);

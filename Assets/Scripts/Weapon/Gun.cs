@@ -34,4 +34,9 @@ public class Gun : MonoBehaviour
         currentAmo += pickupAmount;
         UIController.instance.ammoText.text = currentAmo + " Bullets";
     }
+
+    public void ShootBullet()
+    {
+        Instantiate(bullet, firepoint.position, firepoint.rotation);
+    }
 }
